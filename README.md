@@ -2,7 +2,7 @@
 
 Made 2026-11-05. v2 gives Chotu the Reachy Mini look (a bell-shaped body, a round head floating on top, a black goggle face with two big eyes, and slim antennas) and makes the moving parts lighter.
 
-![Chotu v2](renders/v2/full.png)
+![The printable parts of Chotu v2](renders/v2/parts.png)
 
 **Credit:** the look is inspired by Pollen Robotics' Reachy Mini. Their hardware design is shared under CC BY-NC-SA, so this personal look-alike is fine. Credit Pollen Robotics if you share it, and don't sell it. All the parts here were drawn from scratch to fit our cheaper parts.
 
@@ -33,7 +33,7 @@ Each antenna is **two prints**:
 
 Print settings for the antenna: 0.2 mm layers, **100% infill** (it's thin, so it's all walls anyway), PLA or PETG. PETG is even springier. Want it softer? Print the same `antenna.stl` in TPU.
 
-## Files (all in `stl/v2/`)
+## Files (in this folder)
 
 | STL | Print in | Supports | Notes |
 |---|---|---|---|
@@ -53,4 +53,48 @@ Design file: `chotu_v2.scad`. It loads `chotu.scad` and changes only what's new,
 
 As we agreed, real sizes come first. v2 still uses the standard sizes for the MG90S, PCA9685, lazy-susan bearing and speaker, because I haven't had your measurements yet. **Before you print, send me your measurements** (or product links) and I'll update the numbers. It's only a few edits at the top of `chotu.scad`, and both versions update together.
 
-![Exploded view](renders/v2/exploded.png)
+## Starter code (`software/`)
+
+Starter code for the Raspberry Pi that moves the head, the body turn and the antennas through the PCA9685 board. **It has been checked by calculation only, not yet on a real robot**, so calibrate before trusting it (steps below).
+
+![Chotu's head mechanism](renders/v2/head_geometry.png)
+
+| File | What it does |
+|---|---|
+| `head_kinematics.py` | The head maths: turns a pose (tilt, nod, turn, shift) into six horn angles. Plain Python, no extra packages |
+| `chotu_head_geometry.json` | Positions of the servos and head joints, generated from the numbers in `chotu.scad` |
+| `chotu.py` | The robot driver: `head()`, `glide()`, `turn()`, `antennas()`, `home()` |
+| `demo.py` | Wake up, look around, nod, tilt, wiggle the antennas |
+| `config.json` | Which PCA9685 channel each servo is on, plus direction and trim for calibration |
+| `test_head_kinematics.py` | Checks that the maths is right |
+| `tools/` | `make_geometry.py` rebuilds the geometry file; `draw_visuals.py` redraws the pictures here |
+
+Try it on any computer first (prints servo angles, moves nothing):
+
+```bash
+cd software
+python3 test_head_kinematics.py
+python3 demo.py --dry-run
+```
+
+On the Pi, turn on I2C, then:
+
+```bash
+pip install -r requirements.txt
+python3 demo.py --centre   # holds every servo at home so you can fit the horns
+python3 demo.py
+```
+
+**Wiring (change in `config.json`):** head servos 0–5 on PCA9685 channels 0–5, going anticlockwise seen from above, starting at Chotu's right side. Body turn servo on channel 6. Left antenna on 7, right antenna on 8.
+
+**Calibrate before the first real run:**
+
+1. Take the rods off, run `python3 demo.py --centre`, and screw each head horn on as level as you can. Fix what's left with `trim` in `config.json`.
+2. In Python, run `Chotu().head(z=5)`. Every horn tip should go **up**. If one goes down, flip that servo's `direction` in `config.json`.
+3. Put the rods back and run the demo with a hand near the power switch.
+
+How far the head can move (calculated, with each horn kept within ±60°):
+
+![Head range of motion](renders/v2/head_range.png)
+
+If you change a size in `chotu.scad`, run `python3 software/tools/make_geometry.py` so the head maths matches the new parts.

@@ -1,0 +1,19 @@
+{
+  "_help": "Wiring and calibration. 'channel' is the PCA9685 output the servo is plugged into. 'direction' is +1 or -1: flip it if that servo moves the wrong way. 'trim' is degrees added so the horn is exactly level (head servos) or centred (yaw, antennas) at home.",
+  "pca9685": { "address": 64, "frequency_hz": 50 },
+  "pulse_us": { "min": 500, "max": 2500, "range_deg": 180 },
+  "head_servos": [
+    { "channel": 0, "direction": -1, "trim": 0 },
+    { "channel": 1, "direction": 1, "trim": 0 },
+    { "channel": 2, "direction": -1, "trim": 0 },
+    { "channel": 3, "direction": 1, "trim": 0 },
+    { "channel": 4, "direction": -1, "trim": 0 },
+    { "channel": 5, "direction": 1, "trim": 0 }
+  ],
+  "yaw_servo": { "channel": 6, "direction": 1, "trim": 0, "limit_deg": 80 },
+  "antennas": {
+    "left": { "channel": 7, "direction": 1, "trim": 0, "limit_deg": 60 },
+    "right": { "channel": 8, "direction": -1, "trim": 0, "limit_deg": 60 }
+  },
+  "head_limit_deg": 60
+}
